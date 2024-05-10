@@ -1,0 +1,22 @@
+{
+  "name": "impresso-monorepo",
+  "version": "1.0.0",
+  "private": "true",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "npx next telemetry disable",
+    "build": "npm run compile:contracts && npm run build:frontend",
+    "test:contracts": "npm run test --workspace @impresso/contracts",
+    "compile:contracts": "npm run compile --workspace @impresso/contracts",
+    "hh-node:contracts": "npm run node --workspace @impresso/contracts",
+    "dev:frontend": "npm run dev --workspace @impresso/frontend",
+    "build:frontend": "npm run build --workspace @impresso/frontend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "workspaces": [
+    "packages/*"
+  ]
+}
