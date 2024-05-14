@@ -1,6 +1,6 @@
 # Impresso Monorepo
 
-It uses npm workspacese, more about them here 
+It uses npm workspaces, more about them here 
 [here](https://docs.npmjs.com/cli/v8/using-npm/workspaces)
 
 ## Setup
