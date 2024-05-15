@@ -1,0 +1,188 @@
+.widget-body {
+    max-width: 500px;
+    height:fit-content;
+    background-color: rgb(242, 246, 250);
+    border-radius: 20px;
+    box-shadow: 0px 0px 28px rgb(184, 184, 184);
+    padding: 40px;
+    min-height: 650px;
+    position: relative;
+    width: 100%;
+}
+
+.widget-form {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+
+    .widget-open-results-btn {
+        position: absolute;
+        top: 0;
+        right: 0;
+        color: gray;
+        background-color: transparent;
+        cursor: pointer;
+        border: 0;
+        padding: 15px;
+        border-bottom-left-radius: 6px;
+        border-top-right-radius: 18px;
+    }
+    .widget-open-results-btn:disabled {
+        color: rgb(177, 177, 177);
+        cursor: default;
+    }
+
+    .widget-form-br {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .widget-form-block {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        width: 100%;
+        
+
+        label {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .input-fw {
+            font-size: 20px;
+            padding: 6px;
+            border-radius: 5px;
+            border: 0.5px solid gray;
+        }
+
+        select {
+            font-size: 20px;
+            padding: 6px;
+            border-radius: 5px;
+            border: 0.5px solid gray;
+            width: 100%;
+        }
+
+        span {
+            color: red;
+        }
+    }
+
+    .btn-submit {
+        margin-top: 25px;
+        font-size: 20px;
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 0;
+        background-color: rgb(64, 67, 255);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgb(153, 153, 153);
+        transition: all .3s;
+    }
+
+    .btn-submit-error {
+        margin-top: 25px;
+        font-size: 20px;
+        width: 100%;
+        padding: 10px;
+        
+        border: 0;
+        background-color: rgb(255, 64, 64);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgb(153, 153, 153);
+        transition: all .3s;
+    }
+
+    .btn-submit:hover {
+        background-color: rgb(42, 46, 255);
+    }
+    .btn-submit-error:hover {
+        background-color: rgb(187, 45, 45);
+    }
+
+    button:disabled {
+        opacity: 0.7;
+    }
+}
+
+.widget-results {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 30px;
+    height: 520px;
+    width: 100%;
+
+    .widget-results-blocks {
+        display: flex;
+        gap: 10px;
+        flex-direction: column;
+    }
+
+    .widget-results-block {
+        background-color: rgb(64, 67, 255);
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 0 10px rgb(153, 153, 153);
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 15px;
+        transition: all .3s;
+        cursor: pointer;
+    }
+    .widget-results-block:hover {
+        background-color: rgb(42, 46, 255);
+        font-size: 17px;
+    }
+    .widget-results-block-hash {
+        background-color: rgb(123, 125, 255);
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 0 10px rgb(153, 153, 153);
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 15px;
+        transition: all .3s;
+        cursor: pointer;
+    }
+    .widget-results-block-hash:hover {
+        background-color: rgb(99, 101, 204);
+        font-size: 17px;
+    }
+    .widget-results-back-btn {
+        margin-top: 25px;
+        font-size: 20px;
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 0;
+        background-color: rgb(64, 67, 255);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgb(153, 153, 153);
+        transition: all .3s;
+    }
+    .widget-results-back-btn:hover {
+        background-color: rgb(42, 46, 255);
+    }
+}
