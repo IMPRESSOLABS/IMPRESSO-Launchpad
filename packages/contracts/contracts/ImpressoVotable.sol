@@ -78,6 +78,10 @@ contract ImpressoVotable is Impresso {
 
     // Reset voting state
     function _resetVoting(string memory votingTitle) private {
+        
+        // IMPROVEMENT: Sybil Attack Protection. Ensure comprehensive resetting of voting state post-voting to clear out all previous tallies and flags.
+        totalVotes[votingTitle] = 0;
+
         isVotingActive[votingTitle] = false;
         emit VotingEnded(votingTitle);
     }

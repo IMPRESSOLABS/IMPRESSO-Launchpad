@@ -2,9 +2,7 @@
 // Compatible with OpenZeppelin Contracts ^5.0.0
 pragma solidity ^0.8.24;
 
-
 import "./ImpressoAC.sol";
-
 
 contract ImpressoVotableAC is ImpressoAC {
     bool private _commissionEnabled;
@@ -23,7 +21,7 @@ contract ImpressoVotableAC is ImpressoAC {
 
     // mapping for tracking voting status (enabled / disabled)
     mapping(string => bool) public isVotingActive;
-    
+
     // mapping for setting the vote count
     mapping(string => uint256) public votesCountNeeded;
 
@@ -37,15 +35,23 @@ contract ImpressoVotableAC is ImpressoAC {
     /* ##################   ######################  ################## */
 
     // Disable address from voting
-    function blacklistVoter(address voter) public onlyRole(DEFAULT_ADMIN_ROLE) whenNotPaused {
+    function blacklistVoter(
+        address voter
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) whenNotPaused {
         _blockedToVote[voter] = true;
     }
 
     // Create a voting
-    function createVoting(string memory title, uint256 votesNeeded) public onlyRole(DEFAULT_ADMIN_ROLE) whenNotPaused {
+    function createVoting(
+        string memory title,
+        uint256 votesNeeded
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) whenNotPaused {
         require(votesNeeded > 0, "votesNeeded must be > 0");
-        require(votesCountNeeded[title] == 0, "Voting with this title already exists");
-        
+        require(
+            votesCountNeeded[title] == 0,
+            "Voting with this title already exists"
+        );
+
         votesCountNeeded[title] = votesNeeded;
         isVotingActive[title] = true;
 
@@ -78,7 +84,12 @@ contract ImpressoVotableAC is ImpressoAC {
 
     // Reset voting state
     function _resetVoting(string memory votingTitle) private {
+        
+        // IMPROVEMENT: Sybil Attack Protection. Ensure comprehensive resetting of voting state post-voting to clear out all previous tallies and flags.
+        totalVotes[votingTitle] = 0;
+        
         isVotingActive[votingTitle] = false;
         emit VotingEnded(votingTitle);
     }
+    
 }

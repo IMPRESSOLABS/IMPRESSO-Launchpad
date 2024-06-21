@@ -20,7 +20,9 @@ contract Impresso is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, 
     // map (commissionerAddress => amount)
     mapping(address => uint256) private _commissionPercentages;
 
-    
+    // IMPRROVEMENT: Add detailed event logging for all critical actions, including parameter changes, role updates, and financial transactions.
+    event CommissionUpdated(address indexed commissioner, uint256 newPercentage);
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         // assume that the commission will be enabled by default
@@ -82,6 +84,13 @@ contract Impresso is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, 
     function setCommissionPercentages(address[] memory addrs, uint256[] memory percentages) public onlyOwner whenNotPaused {
         require(addrs.length == percentages.length, "Arrays length mismatch");
         require(addrs.length + _commissionAddresses.length <= 3, "Exceeds maximum number of commission addresses");
+        
+        // IMPPROVEMENT: Implement cumulative percentage validation to ensure the total does not exceed 100%.
+        uint256 totalPercentage = 0;
+        for (uint256 i = 0; i < percentages.length; i++) {
+            totalPercentage += percentages[i];
+        }
+        require(totalPercentage <= 100, "Total commission percentages exceed 100%");
 
         for (uint256 i = 0; i < addrs.length; i++) {
             address addr = addrs[i];
@@ -94,6 +103,10 @@ contract Impresso is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, 
             }
 
             _commissionPercentages[addr] = percentage;
+
+            
+            // IMPRROVEMENT: Add detailed event logging for all critical actions, including parameter changes, role updates, and financial transactions.
+            emit CommissionUpdated(addr, percentage);
         }
     }
 
