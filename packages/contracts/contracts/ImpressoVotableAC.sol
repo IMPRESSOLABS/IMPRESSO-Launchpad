@@ -3,6 +3,7 @@
 pragma solidity ^0.8.24;
 
 import "./ImpressoAC.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract ImpressoVotableAC is ImpressoAC {
     bool private _commissionEnabled;
@@ -29,6 +30,8 @@ contract ImpressoVotableAC is ImpressoAC {
     event VotingStarted(string title, uint256 votesNeeded);
     event VotingEnded(string title);
     event Vote(string title, address voterAddress);
+    event VoterBlacklisted(address indexed voter);
+    event VotingCreated(string title, uint256 votesNeeded);
 
     /* ##################   ######################  ################## */
     /* ##################           VOTING          ################## */
@@ -39,9 +42,14 @@ contract ImpressoVotableAC is ImpressoAC {
         address voter
     ) public onlyRole(DEFAULT_ADMIN_ROLE) whenNotPaused {
         _blockedToVote[voter] = true;
+        emit VoterBlacklisted(voter);
     }
 
-    // Create a voting
+    /**
+     * @dev Creates a new voting session.
+     * @param title The title of the voting session.
+     * @param votesNeeded The number of votes required to execute the action.
+     */
     function createVoting(
         string memory title,
         uint256 votesNeeded
@@ -55,14 +63,19 @@ contract ImpressoVotableAC is ImpressoAC {
         votesCountNeeded[title] = votesNeeded;
         isVotingActive[title] = true;
 
+        emit VotingCreated(title, votesNeeded);
         emit VotingStarted(title, votesNeeded);
     }
 
     // Vote for a proposal
-    function vote(string memory votingTitle) public whenNotPaused {
+    function vote(string memory votingTitle) public whenNotPaused nonReentrant {
         require(isVotingActive[votingTitle], "Voting ended or not exists");
         require(!_blockedToVote[msg.sender], "Not allowed to vote");
         require(!votings[votingTitle][msg.sender], "Already voted");
+        require(
+            balanceOf(msg.sender) > minimumVotingBalance,
+            "Insufficient token balance to vote"
+        );
 
         // add msg.sender to people who already voted
         votings[votingTitle][msg.sender] = true;
@@ -84,12 +97,20 @@ contract ImpressoVotableAC is ImpressoAC {
 
     // Reset voting state
     function _resetVoting(string memory votingTitle) private {
-        
         // IMPROVEMENT: Sybil Attack Protection. Ensure comprehensive resetting of voting state post-voting to clear out all previous tallies and flags.
         totalVotes[votingTitle] = 0;
-        
+
         isVotingActive[votingTitle] = false;
         emit VotingEnded(votingTitle);
     }
     
+    function emergencyPause() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+        emit EmergencyPaused(msg.sender);
+    }
+
+    function emergencyUnpause() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
+        emit EmergencyUnpaused(msg.sender);
+    }
 }

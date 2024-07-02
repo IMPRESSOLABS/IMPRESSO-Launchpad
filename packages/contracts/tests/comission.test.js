@@ -19,6 +19,12 @@ describe("Comission", function () {
         await contract.waitForDeployment();
     });
 
+    it("should mint tokens correctly", async function () {
+        await impressoAC.mint(recipient.address, mintAmount);
+        const balance = await impressoAC.balanceOf(recipient.address);
+        expect(balance).to.equal(mintAmount);
+    });
+
     describe("commission", function () {
         it("should calculate and distribute commission correctly on transfer", async function () {
             // Set commission percentages

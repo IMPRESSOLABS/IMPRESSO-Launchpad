@@ -17,3 +17,6 @@ It uses npm workspaces, more about them here
 ## Frontend
 
 [Frontend](https://github.com/Anola-Software/impress-erc20-votable/blob/main/packages/frontend)
+
+## Testing
+[Testing] npx hardhat test
