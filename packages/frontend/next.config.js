@@ -5,7 +5,8 @@ const nextConfig = {
     appName: process.env.APP_NAME,
     projectId: process.env.PROJECT_ID,
     apiUrl: process.env.API_URL
-  }
+  },
+  output: 'export'
 };
 
 module.exports = nextConfig;
