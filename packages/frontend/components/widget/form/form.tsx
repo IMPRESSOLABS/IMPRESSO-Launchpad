@@ -142,9 +142,9 @@ export default function Form() {
             const args = [data.Name, data.Symbol, parseEther("" + data.TotalSupply), data.UseMaxTotalSupply];
 
             // if we are deploying accessControl contract
-            if (data.TokenType.includes("accessControl")) {
+            // if (data.TokenType.includes("accessControl")) {
                 args.push(address as string);
-            }
+            // }
 
             // DEPLOY PROXY
             setStatus("Deploying proxy...");
@@ -158,7 +158,7 @@ export default function Form() {
                 abi: uupsProxy.abi,
                 account: address,
                 bytecode: uupsProxy.bytecode as `0x${string}`,
-                args: [tx?.contractAddress, encodedDataAsInitializerArgs],
+                args: [tx?.contractAddress, encodedDataAsInitializerArgs, address as string],
             });
 
             // WAIT FOR PROXY DEPLOYMENT FINISH
