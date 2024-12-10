@@ -5,6 +5,9 @@ import type { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
 import {
+  mainnet,
+  cronos,
+  cronosTestnet,
   arbitrum,
   arbitrumNova,
   sepolia,
@@ -15,8 +18,11 @@ const config = getDefaultConfig({
   appName: process.env.appName ?? 'Launchpad',
   projectId: process.env.projectId ?? "",
   chains: [
+    mainnet,
     arbitrum,
     arbitrumNova,
+    cronos,
+    cronosTestnet,
     {
       ...sepolia, 
       blockExplorers: {
