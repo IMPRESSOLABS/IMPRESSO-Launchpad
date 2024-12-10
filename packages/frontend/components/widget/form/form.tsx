@@ -144,13 +144,9 @@ export default function Form() {
 
             // if we are deploying accessControl contract
             // if (data.TokenType.includes("accessControl")) {
-<<<<<<< HEAD
             args.push(address as string);
             //}
-=======
-                args.push(address as string);
-            // }
->>>>>>> 83899b5558f8369dea8effb1ae90b7306b5aa4b6
+
 
             // DEPLOY PROXY
             setStatus("Deploying proxy...");

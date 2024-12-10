@@ -12,7 +12,7 @@ It uses npm workspaces, more about them here
 
 ## Production
 
-1. run `link -s ~/{project_name}/packages/contracts/artifacts/contracts ~/{project_name}/packages/frontend/contracts` to create a symbolic link between compiled contracts and frontend.
+1. run `ln -s ~/IMPRESSO-Launchpad/packages/contracts/artifacts/contracts ~/{project_name}/packages/frontend/contracts` to create a symbolic link between compiled contracts and frontend.
 2. run `npm run build` to compile the contracts and frontend
 3. Host on Nginx:
 ```
