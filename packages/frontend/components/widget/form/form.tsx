@@ -198,10 +198,10 @@ export default function Form() {
                                 <input 
                                     className={styles["input-fw"]} 
                                     type="text" id="token-symbol-id" 
-                                    {...register("Symbol", { required: true, maxLength: 4 })}
+                                    {...register("Symbol", { required: true, maxLength: 8 })}
                                     disabled={isDisabled(status, error)}
                                 ></input>
-                                { Boolean(errors.Symbol) && <span>{'Length must be => 2 and <= 4'}</span> }
+                                { Boolean(errors.Symbol) && <span>{'Length must be => 2 and <= 8'}</span> }
                             </div>
                         </div>
 
