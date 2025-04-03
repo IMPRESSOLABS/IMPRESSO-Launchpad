@@ -11,6 +11,7 @@ import {
   arbitrum,
   arbitrumNova,
   sepolia,
+  hardhat,
 } from 'wagmi/chains';
 import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 
@@ -23,6 +24,7 @@ const config = getDefaultConfig({
     arbitrumNova,
     cronos,
     cronosTestnet,
+    hardhat,
     {
       ...sepolia, 
       blockExplorers: {

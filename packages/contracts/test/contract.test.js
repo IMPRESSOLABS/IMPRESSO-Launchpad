@@ -243,6 +243,7 @@ describe("Impresso Token Tests", function () {
 
     beforeEach(async function () {
       await impresso.mint(addr1.address, amount);
+      await impressoAC.mint(addr1.address, amount);
     });
 
     it("Should allow token holder to burn their tokens", async function () {
@@ -254,6 +255,14 @@ describe("Impresso Token Tests", function () {
       await expect(
         impresso.connect(addr1).burn(amount + 1n)
       ).to.be.reverted;
+    });
+
+    it("Should prevent burning of token not from caller's own account", async function () {
+// Ensure addr1 approves addr2 for the burnFrom operation
+      await impressoAC.connect(addr1).approve(addr2.address, amount - 1n); // Insufficient allowance
+      await expect(
+        impressoAC.connect(addr2).burnFrom(addr1.address, amount)
+      ).to.be.revertedWith("ERC20: insufficient allowance");
     });
   });
 

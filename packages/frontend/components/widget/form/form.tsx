@@ -17,6 +17,8 @@ import impressoVotable from "../../../contracts/ImpressoVotable.sol/ImpressoVota
 import uupsProxy from "../../../contracts/UUPSProxy.sol/UUPSProxy.json";
 import impressoAC from "../../../contracts/ImpressoAC.sol/ImpressoAC.json";
 import impressoVotableAC from "../../../contracts/ImpressoVotableAC.sol/ImpressoVotableAC.json";
+import impressoMoca from "../../../contracts/ImpressoMoca.sol/ImpressoMoca.json";
+import impressoGovernance from "../../../contracts/ImpressoGovernance.sol/ImpressoGovernance.json";
 
 import { useState } from "react";
 import { parseEther, encodeFunctionData } from "viem";
@@ -28,7 +30,7 @@ type Inputs = {
     Name: string;
     Symbol: string;
     TotalSupply: number;
-    TokenType: "default" | "votable" | "accessControlDefault" | "accessControlVotable";
+    TokenType: "default" | "votable" | "accessControlDefault" | "accessControlVotable" | "MOCA";
     AmountToMint: number;
     AddressToBeMinted: string;
     UseMaxTotalSupply: boolean;
@@ -39,6 +41,8 @@ export type TResults = {
     logicContractTxHash: string;
     proxyContractAddress: string;
     proxyContractTxHash: string;
+    governanceContractAddress: string,
+    governanceContractTxHash: string
 }
 
 const ethereumAddressRegex = /^(0x)?[0-9a-fA-F]{40}$/;
@@ -58,7 +62,8 @@ const getContractData = (name: Inputs["TokenType"]) => {
             return impressoAC;
         case "accessControlVotable":
             return impressoVotableAC;
-
+        case "MOCA":
+            return impressoMoca;
         default:
             return impresso;
     }
@@ -87,6 +92,8 @@ export default function Form() {
 
     const getRequiredConfirmations = (networkId: number) => {
         switch (networkId) {
+            case 31337: // Hardhat            
+                return 5;
             case 42161: // Arbitrum            
                 return 20;
             case 421613: // Arbitrum Nova         
@@ -170,6 +177,27 @@ export default function Form() {
                 confirmations: getRequiredConfirmations(networkId),
             });
 
+            let governanceTxHash;
+            let governanceTx;
+
+            if (data.TokenType === "MOCA") {
+                setStatus("Deploying governance contract...");
+                 governanceTxHash = await walletClient?.deployContract({
+                    abi: impressoGovernance.abi,
+                    account: address,
+                    bytecode: impressoGovernance.bytecode as `0x${string}`,
+                    args: [txProxy?.contractAddress], // Pass the proxy contract address (minted token) to the governance contract
+                });
+            
+                // WAIT FOR GOVERNANCE DEPLOYMENT FINISH
+                 governanceTx = await publicClient?.waitForTransactionReceipt({
+                    hash: governanceTxHash as `0x${string}`,
+                    confirmations: getRequiredConfirmations(networkId),
+                });
+            
+     
+            }
+
             // MINT TOKENS
             setStatus("Minting tokens...");
             const txMintHash = await walletClient?.writeContract({
@@ -192,6 +220,8 @@ export default function Form() {
                 logicContractTxHash: txHash as string,
                 proxyContractAddress: txProxy?.contractAddress as string,
                 proxyContractTxHash: txProxyHash as string,
+                governanceContractAddress: governanceTx?.contractAddress as string,
+                governanceContractTxHash: governanceTxHash as string,
             });
             setStatus("Deployed!");
         } catch (error:any) {
@@ -293,6 +323,7 @@ export default function Form() {
                                         <option value="votable">Votable</option>
                                         <option value="accessControlDefault">Default AccessControl</option>
                                         <option value="accessControlVotable">Votable AccessControl</option>
+                                        <option value="MOCA">MOCA</option>
                                     </select>
                                     {Boolean(errors.TokenType) && <span>Token type is required</span>}
                                 </div>

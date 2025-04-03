@@ -96,3 +96,34 @@ _Votable contract provides this set of common functions:_
 
 [**__Access control contracts__**]
 There is also the second version of contracts listed above with the [ACCESS CONTROL](https://docs.openzeppelin.com/contracts/2.x/access-control) feature. (Contracts with this feature are named as (ContractName)AC.sol)
+
+
+## Complie
+```bash
+   npx hardhat compile
+```
+
+## Deployment
+```bash
+npx hardhat run scripts/deployMoca.ts --network arbitrum
+```
+
+
+## Verify Contract
+
+### ImpressoAC
+```bash
+npx hardhat verify --contract contracts/ImpressoAC.sol:ImpressoAC --network arbitrum <ImpressoAC_address>
+```
+
+### Goverance
+```bash
+npx hardhat verify --contract contracts/Impressogovernance.sol:Impressogovernance --network arbitrum <Impressogovernance_address> <ImpressoAC_address>
+```
+
+
+
+## Test deployment
+```bash
+npx hardhat console --network arbitrum
+```
