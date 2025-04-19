@@ -8,14 +8,16 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20Pausable
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-contract ImpressoAC is
+contract ImpressoMoca is
     Initializable,
     ERC20Upgradeable,
     ERC20BurnableUpgradeable,
     ERC20PausableUpgradeable,
     AccessControlUpgradeable,
-    UUPSUpgradeable
+    UUPSUpgradeable,
+    ReentrancyGuardUpgradeable
 {
     /*
      * @title Impresso Token with Commission System
@@ -27,6 +29,12 @@ contract ImpressoAC is
     address[] public _commissionAddresses;
     uint256 public _maxTotalSupply;
     bool private _useMaxTotalSupply;
+    mapping(address => bool) private _commissionExempt;
+
+    // Governance-related variables
+    address public governanceContract;
+    mapping(bytes32 => bool) private _proposalExecuted;
+    mapping(bytes32 => mapping(address => bool)) private _proposalVotes;
 
     // roles
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
@@ -34,8 +42,17 @@ contract ImpressoAC is
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
+    // Minimum commission percentage allowed
+    uint8 private constant MIN_COMMISSION_PERCENTAGE = 1;
+
     event CommissionToggled(bool enabled);
     event CommissionPercentagesSet(address[] addresses, uint256[] percentages);
+    event RoleGranted(address indexed user, bytes32 indexed role);
+    event CommissionExemptionSet(address indexed account, bool exempt);
+    event GovernanceContractSet(address indexed governanceContract);
+    event ProposalCreated(bytes32 indexed proposalId, address indexed proposer, bytes data);
+    event ProposalVoted(bytes32 indexed proposalId, address indexed voter, bool support);
+    event ProposalExecuted(bytes32 indexed proposalId);
 
     // map (commissionerAddress => amount)
     mapping(address => uint256) private _commissionPercentages;
@@ -70,12 +87,30 @@ contract ImpressoAC is
         __ERC20Pausable_init();
         __AccessControl_init();
         __UUPSUpgradeable_init();
+        __ReentrancyGuard_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(PAUSER_ROLE, owner);
         _grantRole(MINTER_ROLE, owner);
         _grantRole(UPGRADER_ROLE, owner);
         _grantRole(BURNER_ROLE, owner);
+    }
+
+    /**
+     * @notice Sets the governance contract address
+     * @param _governanceContract Address of the governance contract
+     * @dev This can only be called by the admin role and should be set once governance is deployed
+     */
+    function setGovernanceContract(address _governanceContract) 
+        public 
+        onlyRole(DEFAULT_ADMIN_ROLE) 
+        whenNotPaused 
+    {
+        require(_governanceContract != address(0), "Governance cannot be zero address");
+        require(governanceContract == address(0), "Governance already set");
+        
+        governanceContract = _governanceContract;
+        emit GovernanceContractSet(_governanceContract);
     }
 
     function grantRoleForAddress(
@@ -95,27 +130,58 @@ contract ImpressoAC is
         );
 
         _grantRole(roleHash, user);
+        emit RoleGranted(user, roleHash);
     }
 
     function burn(
         address account,
         uint256 amount
-    ) public onlyRole(BURNER_ROLE) whenNotPaused {
+    ) public whenNotPaused nonReentrant {
+        require(amount > 0, "Amount must be greater than 0");
+        require(account != address(0), "Account cannot be zero address");
+        
+        // Check if caller is authorized
+        bool isAuthorized = hasRole(BURNER_ROLE, msg.sender) || 
+                           (governanceContract != address(0) && msg.sender == governanceContract);
+        
+        require(isAuthorized, "Not authorized");
+        
         _burn(account, amount);
     }
 
-    function pause() public onlyRole(PAUSER_ROLE) whenNotPaused {
+    function pause() public whenNotPaused {
+        // Check if caller is authorized
+        bool isAuthorized = hasRole(PAUSER_ROLE, msg.sender) || 
+                           (governanceContract != address(0) && msg.sender == governanceContract);
+        
+        require(isAuthorized, "Not authorized");
+        
         _pause();
     }
 
-    function unpause() public onlyRole(PAUSER_ROLE) {
+    function unpause() public {
+        // Check if caller is authorized
+        bool isAuthorized = hasRole(PAUSER_ROLE, msg.sender) || 
+                           (governanceContract != address(0) && msg.sender == governanceContract);
+        
+        require(isAuthorized, "Not authorized");
+        
         _unpause();
     }
 
     function mint(
         address to,
         uint256 amount
-    ) public onlyRole(MINTER_ROLE) whenNotPaused {
+    ) public whenNotPaused nonReentrant {
+        require(to != address(0), "Mint to zero address");
+        require(amount > 0, "Amount must be greater than 0");
+        
+        // Check if caller is authorized
+        bool isAuthorized = hasRole(MINTER_ROLE, msg.sender) || 
+                           (governanceContract != address(0) && msg.sender == governanceContract);
+        
+        require(isAuthorized, "Not authorized");
+        
         if (_useMaxTotalSupply) {
             require(
                 totalSupply() + amount <= _maxTotalSupply,
@@ -126,8 +192,14 @@ contract ImpressoAC is
     }
 
     function _authorizeUpgrade(
-        address newImplementation
-    ) internal override onlyRole(UPGRADER_ROLE) {}
+        address /* newImplementation */
+    ) internal view override {
+        // Check if caller is authorized
+        bool isAuthorized = hasRole(UPGRADER_ROLE, _msgSender()) || 
+                           (governanceContract != address(0) && _msgSender() == governanceContract);
+        
+        require(isAuthorized, "Not authorized to upgrade");
+    }
 
     function _beforeTokenTransfer(
         address from,
@@ -141,13 +213,19 @@ contract ImpressoAC is
     /* ##################         COMMISSION        ################## */
     /* ##################   ######################  ################## */
 
-    /*
+    /**
      * @notice Toggle enable or disable commission
-     * @param enable Boolean
+     * @param enable Boolean to enable or disable commission
      */
     function toggleCommission(
         bool enable
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) whenNotPaused {
+    ) public whenNotPaused {
+        // Check if caller is authorized
+        bool isAuthorized = hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || 
+                           (governanceContract != address(0) && msg.sender == governanceContract);
+        
+        require(isAuthorized, "Not authorized");
+        
         _commissionEnabled = enable;
         emit CommissionToggled(enable);
     }
@@ -212,6 +290,45 @@ contract ImpressoAC is
         address addr
     ) public view whenNotPaused returns (uint256) {
         return _commissionPercentages[addr];
+    }
+
+    /**
+     * @notice Returns all commission addresses and their percentages
+     * @return addresses Array of commission addresses
+     * @return percentages Array of corresponding percentages
+     */
+    function getAllCommissionPercentages() public view returns (address[] memory addresses, uint256[] memory percentages) {
+        addresses = _commissionAddresses;
+        percentages = new uint256[](addresses.length);
+        
+        for (uint256 i = 0; i < addresses.length; i++) {
+            percentages[i] = _commissionPercentages[addresses[i]];
+        }
+        
+        return (addresses, percentages);
+    }
+
+    /**
+     * @notice Sets or removes commission exemption for an address
+     * @param account Address to set exemption for
+     * @param exempt Whether the address should be exempt from commission
+     */
+    function setCommissionExempt(
+        address account,
+        bool exempt
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) whenNotPaused {
+        require(account != address(0), "Account cannot be zero address");
+        _commissionExempt[account] = exempt;
+        emit CommissionExemptionSet(account, exempt);
+    }
+
+    /**
+     * @notice Checks if an address is exempt from commission
+     * @param account Address to check
+     * @return Boolean indicating if the address is exempt
+     */
+    function isCommissionExempt(address account) public view returns (bool) {
+        return _commissionExempt[account];
     }
 
     // override the _transfer (for commission calculations)

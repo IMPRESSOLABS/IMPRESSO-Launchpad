@@ -14,7 +14,12 @@ export default function Results(props: {
     const { results, setShowResults } = props;
 
     const handleCopyAddress = (addr: string) => {
-        navigator.clipboard.writeText(addr);
+        try {
+            navigator.clipboard.writeText(addr);
+        } catch (err) {
+            console.error("Failed to copy address:", err);
+            alert("Failed to copy address to clipboard");
+        }
     }
 
     return (

@@ -5,25 +5,33 @@ import type { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
 import {
+  mainnet,
+  cronos,
+  cronosTestnet,
   arbitrum,
   arbitrumNova,
   sepolia,
+  hardhat,
 } from 'wagmi/chains';
 import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 
 const config = getDefaultConfig({
-  appName: 'RainbowKit App',
-  projectId: 'aec84fc090cad6ff22325f167a1b60a1',
+  appName: process.env.appName ?? 'Launchpad',
+  projectId: process.env.projectId ?? "",
   chains: [
+    mainnet,
     arbitrum,
     arbitrumNova,
+    cronos,
+    cronosTestnet,
+    hardhat,
     {
       ...sepolia, 
       blockExplorers: {
         ...sepolia.blockExplorers,
         default: {
           ...sepolia.blockExplorers.default,
-          apiUrl: "https://sepolia.infura.io/v3/aaf40adf2d1f4a4d829a88d872f4237a"
+          apiUrl: process.env.apiUrl ?? ""
         }
       }
     },

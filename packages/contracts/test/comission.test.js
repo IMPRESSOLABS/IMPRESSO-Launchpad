@@ -35,6 +35,7 @@ describe("Comission", function() {
         
             // Check balance of commissionAddress1
             const balanceCommissionAddress1 = await contract.balanceOf(commissionAddress1.address);
+        
             expect(balanceCommissionAddress1).to.equal(10); // Commission should be 10% of 100
         
             // Check balance of commissionAddress2
